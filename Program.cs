@@ -10,11 +10,19 @@ namespace DungeonExplorer
     {
         static void Main(string[] args)
         {
+            // Run tests before starting game
+            Tests.RunTests();
+
+            // Start game
             Game game = new Game();
             game.Start();
-            Console.WriteLine("Waiting for your Implementation");
+
+            // End message
+            Console.WriteLine("\nGame over.");
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
+
+
         }
     }
 }
