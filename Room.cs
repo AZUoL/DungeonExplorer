@@ -2,11 +2,12 @@
 {
     public class Room
     {
-        private string description;
+        private string description; // Room description
         private string item; // The item in the room if there is one
 
         public Room(string description, string item = null)
         {
+            // Initialise the room with description
             this.description = description;
             this.item = item; 
         }
@@ -18,7 +19,7 @@
 
         public bool HasItem()
         {
-            return item != null; // returns true if there is an item in the room
+            return item != null; // Check if the room has an item
         }
 
         public string GetItem()
@@ -28,7 +29,7 @@
 
         public void RemoveItem()
         {
-            item = null; // clears the item when the player picks it up
+            item = null; // Removes the item from the room
         }
     }
 }
