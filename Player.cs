@@ -17,7 +17,6 @@ namespace DungeonExplorer
         }
         public void PickUpItem(string item)
         {
-            // Allow pick up of only 1 item
             if (inventory.Count == 0)
             {
                 inventory.Add(item);
@@ -31,11 +30,12 @@ namespace DungeonExplorer
 
         public void DropItem()
         {
-            // Drops the current item
+            // Drops specific item if its in the inventory
             if (inventory.Count > 0)
             {
                 Console.WriteLine($"{Name} dropped {inventory[0]}.");
                 inventory.Clear();
+
             }
             else
             {
@@ -43,9 +43,25 @@ namespace DungeonExplorer
             }
         }
 
+        public void DropAllItems()
+        {
+            // Drops all items from inventory
+            if (inventory.Count > 0)
+            {
+                Console.WriteLine($"{Name} dropped all items.");
+                inventory.Clear();
+            }
+            else
+            {
+                Console.WriteLine("You have no items to drop");
+            }
+        }
+
         public string InventoryContents()
         {
-            return inventory.Count > 0 ? string.Join(", ", inventory) : "Empty";
+            // If inventory has items, join them into a single string that are separted by commas.
+            // Otherwise return "empty" if no items are there
+            return inventory.Count > 0 ? string.Join(", ", inventory) : "Empty"; 
         }
 
         public void DisplayStatus()

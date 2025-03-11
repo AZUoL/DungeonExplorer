@@ -1,15 +1,21 @@
-﻿namespace DungeonExplorer
+﻿using System;
+using System.Collections.Generic; // required for multiple items
+
+
+namespace DungeonExplorer
 {
     public class Room
     {
         private string description; // Room description
-        private string item; // The item in the room if there is one
+        private List<string> items = new List<string>(); // Multiple items
+        private string monster; // A monster in the room 
 
-        public Room(string description, string item = null)
+        public Room(string description, List<string> items = null, string monster = null)
         {
             // Initialise the room with description
             this.description = description;
-            this.item = item; 
+            this.items = items ?? new List<string>(); // If no items are given, initialises empty list
+            this.monster = monster;
         }
 
         public string GetDescription()
@@ -17,19 +23,37 @@
             return description;
         }
 
-        public bool HasItem()
+        public bool HasItems()
         {
-            return item != null; // Check if the room has an item
+            return items.Count > 0; // Check if the room has items
         }
 
-        public string GetItem()
+        public List<string> GetItems()
         {
-            return item;
+            return new List<string>(items); // Returns a copy to avoid changing original list
         }
 
-        public void RemoveItem()
+        public void RemoveItem(string item)
         {
-            item = null; // Removes the item from the room
+            if (items.Contains(item))
+            {
+                items.Remove(item);
+            }
+        }
+
+        public bool HasMonster()
+        {
+            return !string.IsNullOrEmpty(monster); // Check if the room has a monster
+        }
+
+        public string GetMonster()
+        {
+            return monster;
+        }
+
+        public void RemoveMonster()
+        {
+            monster = null; // Removes the monster if defeated
         }
     }
 }

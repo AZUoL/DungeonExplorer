@@ -14,12 +14,12 @@ namespace DungeonExplorer
             Console.WriteLine("\nRunning Tests");
 
             // Test #1: See if room description is correct
-            Room testRoom = new Room("A dark, rat infested room", "Sharp Stick");
+            Room testRoom = new Room("A dark, rat infested room", new List<string> { "Sharp Stick" });
             Debug.Assert(testRoom.GetDescription() == "A dark, rat infested room", "Test 1 has failed. Incorrect Description");
             Console.WriteLine("Test 1 successful. Correct description");
 
             // Test #2: Check if room has item
-            Debug.Assert(testRoom.HasItem(), "Test 2 has failed. Room doesn't have an item at the start");
+            Debug.Assert(testRoom.HasItems(), "Test 2 has failed. Room doesn't have an item at the start");
             Console.WriteLine("Test 2 successful. Room has an item");
 
             // Test #3: Check if player can pick up the item
@@ -34,8 +34,8 @@ namespace DungeonExplorer
             Console.WriteLine("Test 4 successful. Player cannot carry 2+ items.");
 
             // Test #5: Check if room removes item after pickup
-            testRoom.RemoveItem();
-            Debug.Assert(!testRoom.HasItem(), "Test 5 has failed. Room item should be removed after pick up.");
+            testRoom.RemoveItem("Sharp Stick");
+            Debug.Assert(!testRoom.HasItems(), "Test 5 has failed. Room item should be removed after pick up.");
             Console.WriteLine("Test 5 successful. Room has no item after pickup.");
 
             // Test #6: Check if player can drop item
