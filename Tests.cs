@@ -11,8 +11,7 @@ namespace DungeonExplorer
     {
         public static void RunTests()
         {
-            Console.WriteLine("\nRunning Tests");
-
+       
             // Test #1: See if room description is correct
             Room testRoom = new Room("A dark, rat infested room", new List<string> { "Sharp Stick" });
             Debug.Assert(testRoom.GetDescription() == "A dark, rat infested room", "Test 1 has failed. Incorrect Description");
@@ -28,10 +27,10 @@ namespace DungeonExplorer
             Debug.Assert(testPlayer.InventoryContents() == "Sharp Stick", "Test 3 has failed. Player should have picked up the item.");
             Console.WriteLine("Test 3 successful. Player has picked up the item.");
 
-            // Test #4: Check if player can't pick up second item
+            // Test #4: Check if player can pick up multiple items
             testPlayer.PickUpItem("Sharper Stick");
-            Debug.Assert(testPlayer.InventoryContents() == "Sharp Stick", "Test 4 has failed. Player shouldn't be able to pick up multiple items.");
-            Console.WriteLine("Test 4 successful. Player cannot carry 2+ items.");
+            Debug.Assert(testPlayer.InventoryContents() == "Sharp Stick, Sharper Stick", "Test 4 has failed. Player shouldn't be able to pick up multiple items.");
+            Console.WriteLine("Test 4 successful. Player can carry multiple items.");
 
             // Test #5: Check if room removes item after pickup
             testRoom.RemoveItem("Sharp Stick");

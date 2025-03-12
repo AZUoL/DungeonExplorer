@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Media;
-using System.Collections.Generic; // required for multiple items
+using System.Collections.Generic;
+using System.Linq; // required for multiple items
 
 namespace DungeonExplorer
 {
@@ -13,8 +14,25 @@ namespace DungeonExplorer
 
         public Game()
         {
-            // Initialize the game with one room and one player
-            player = new Player("Hero", 100);
+            // Asks the player for their name
+            Console.WriteLine("Enter your name: ");
+            string playerName = Console.ReadLine().Trim();
+
+            // Prevention of empty or too long names
+            while (string.IsNullOrEmpty(playerName) || playerName.Length > 16)
+            {
+                Console.WriteLine("Invalid name. Please make sure it is between 1 - 16 characters and try again.");
+                playerName = Console.ReadLine().Trim();
+            }
+
+            // Joke for numeric names
+            if (playerName.All(char.IsDigit))
+            {
+                Console.WriteLine("Just numbers...? Are you some rogue AI trying to enter the dungeon? Very well, proceed...");
+            }
+
+            // Initialise the player with their chosen name
+            player = new Player(playerName, 100);
 
             // Create rooms
             Room room1 = new Room("A dark, rat infested room", new List<string> { "Sharp Stick", "Old Key" }, "Giant Rat");
@@ -34,100 +52,106 @@ namespace DungeonExplorer
         {
             // Display game intro
             Console.WriteLine("\nYou have entered...The Dungeon\n");
-            Console.WriteLine($"You find yourself looking around, you see: ");
-            Console.WriteLine(currentRoom.GetDescription());
             bool playing = true; // Game loop control
             while (playing)
             {
-                // Display player options
-                Console.WriteLine("\nWhat do you wish to do?");
-                Console.WriteLine("1: Take a look around");
-                Console.WriteLine("2: Check your inventory");
-                Console.WriteLine("3: Pick up an item");
-                Console.WriteLine("4: Move to the next room");
-                if (currentRoom.HasMonster()) // Only display "FIGHT!" if monster exists
-                {
-                    Console.WriteLine("5: FIGHT!");
-                }
-                Console.WriteLine("6: Quit the game");
+                DisplayMenu(); // Show the player's options
+                string choice = Console.ReadLine(); // Get player input
+                HandleChoice(choice, ref playing); // Process the input
+            }
+        }
 
-                string choice = Console.ReadLine(); // Read player input
+        private void DisplayMenu()
+        {
+            // Display player options
+            Console.WriteLine("\nWhat do you wish to do?");
+            Console.WriteLine("1: Take a look around");
+            Console.WriteLine("2: Check your inventory");
+            Console.WriteLine("3: Pick up an item");
+            Console.WriteLine("4: Move to the next room");
+            if (currentRoom.HasMonster()) // Only display "FIGHT!" if monster exists
+            {
+                Console.WriteLine("5: FIGHT!");
+            }
+            Console.WriteLine("6: Quit the game");
+        }
 
-                switch (choice)
-                {
-                    case "1":
-                        // Show room description again
-                        Console.WriteLine("You take a look around and you see: " + currentRoom.GetDescription());
-                        if (currentRoom.HasMonster())
-                        {
-                            Console.WriteLine($"A {currentRoom.GetMonster()} is lurking here!");
-                        }
-                        break;
-                    case "2":
-                        // Show player stats
-                        player.DisplayStatus();
-                        break;
-                    case "3":
-                        // Pick up an item if one is available
-                        if (currentRoom.HasItems())
-                        {
-                            Console.WriteLine("You have picked up the following items: ");
-                            foreach (string item in currentRoom.GetItems())
-                            {
-                                if (item != currentRoom.GetMonster()) // Ensure its not a monster
-                                {
-                                    player.PickUpItem(item);
-                                }
-                            }
-                            currentRoom.GetItems().Clear(); // Removes items from the room
-                        }
-                        break;
-                    case "4":
-                        // Move to the next room
-                        if (currentRoomIndex < rooms.Count - 1)
-                        {
-                            currentRoomIndex++;
-                            currentRoom = rooms[currentRoomIndex];
-                            Console.WriteLine("\nYou move onto the next room...");
-                            Console.WriteLine($"You are now in: {currentRoom.GetDescription()}");
-                        }
-                        else
-                        {
-                            Console.WriteLine("There are no more rooms ahead.");
-                        }
-                        break;
-                    case "5": // New option to "fight"
-                        if (currentRoom.HasMonster())
-                        {
-                            Console.WriteLine($"You engage in battle with {currentRoom.GetMonster()}");
-                            Console.WriteLine("You attempt to fight, but then recall that confrontation gives you anxiety. You promptly flee!");
-                        }
-                        else
-                        {
-                            Console.WriteLine("There are no enemies here...");
-                        }
-                        break;
-                    case "6":
-                        // Quit the game
-                        playing = false;
-                        // List of random quit messages
-                        string[] exitReasons =
-                        {
+        private void HandleChoice(string choice, ref bool playing)
+        {
+            switch (choice)
+            {
+                case "1":
+                    // Show room description again
+                    Console.WriteLine("You take a look around and you see: " + currentRoom.GetDescription());
+                    if (currentRoom.HasMonster())
+                    {
+                        Console.WriteLine($"A {currentRoom.GetMonster()} is lurking here!");
+                    }
+                    break;
+                case "2":
+                    // Show player stats
+                    player.DisplayStatus();
+                    break;
+                case "3":
+                    // Pick up an item if one is available
+                    if (currentRoom.HasItems())
+                    {
+                        string item = currentRoom.GetItems()[0]; // Pick up the first available item
+                        player.PickUpItem(item);
+                        currentRoom.RemoveItem(item); // Removes the item from the room
+                        Console.WriteLine($"You have picked up: {item}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("There is nothing to pick up.");
+                    }
+                    break;
+                case "4":
+                    // Move to the next room
+                    if (currentRoomIndex < rooms.Count - 1)
+                    {
+                        currentRoomIndex++;
+                        currentRoom = rooms[currentRoomIndex];
+                        Console.WriteLine("\nYou move onto the next room...");
+                        Console.WriteLine($"You are now in: {currentRoom.GetDescription()}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("There are no more rooms ahead.");
+                    }
+                    break;
+                case "5": // New option to "fight"
+                    if (currentRoom.HasMonster())
+                    {
+                        Console.WriteLine($"You engage in battle with {currentRoom.GetMonster()}");
+                        Console.WriteLine("You attempt to fight, but then recall that confrontation gives you anxiety. You promptly flee!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("There are no enemies here...");
+                    }
+                    break;
+                case "6":
+                    // Quit the game
+                    playing = false;
+                    // List of random quit messages
+                    string[] exitReasons =
+                    {
                             "You remember that you forgot to turn the oven off and leave the dungeon.",
                             "You hear ghostly whispers, this isn't what you signed up for, so you leave the dungeon",
                             "A massive spider appears, and you decide that you have had enough and leave the dungeon",
                             "You look at the time, it's way past your bedtime, so you leave the dungeon"
                         };
 
-                        // Selects a random message from the list
-                        Random rand = new Random();
-                        Console.WriteLine(exitReasons[rand.Next(exitReasons.Length)]);
-                        break;
-                    default:
-                        // Invalid input handling
-                        Console.WriteLine("Invalid choice, please type: 1, 2, 3, 4, 5 or 6.");
-                        break;
-                }
+                    // Selects a random message from the list
+                    Random rand = new Random();
+                    Console.WriteLine(exitReasons[rand.Next(exitReasons.Length)]);
+                    break;
+                default:
+                    // Invalid input handling
+                    Console.WriteLine("Invalid choice, please type: 1, 2, 3, 4, 5 or 6.");
+                    break;
+                
             }
         }
     }

@@ -17,15 +17,8 @@ namespace DungeonExplorer
         }
         public void PickUpItem(string item)
         {
-            if (inventory.Count == 0)
-            {
-                inventory.Add(item);
-                Console.WriteLine($"{Name} picked up: {item}.");
-            }
-            else
-            {
-                Console.WriteLine($"{Name} is already carrying {inventory[0]}.");
-            }
+            inventory.Add(item);
+            // Console.WriteLine($"{Name} picked up: {item}");
         }
 
         public void DropItem()
