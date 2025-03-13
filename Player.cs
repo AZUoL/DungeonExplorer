@@ -21,19 +21,24 @@ namespace DungeonExplorer
             // Console.WriteLine($"{Name} picked up: {item}");
         }
 
-        public void DropItem()
+        public void DropItem(string item)
         {
             // Drops specific item if its in the inventory
-            if (inventory.Count > 0)
+            if (inventory.Remove(item))
             {
-                Console.WriteLine($"{Name} dropped {inventory[0]}.");
-                inventory.Clear();
-
+                Console.WriteLine($"{Name} dropped {item}.");
             }
             else
             {
-                Console.WriteLine("You have no items to drop.");
+                Console.WriteLine($"{item} is not in your inventory");
             }
+
+            // Ensures that inventory is completely empty if items are gone
+            if (inventory.Count == 0)
+            {
+                Console.WriteLine("Your inventory is now empty");
+            }
+         
         }
 
         public void DropAllItems()
@@ -41,8 +46,8 @@ namespace DungeonExplorer
             // Drops all items from inventory
             if (inventory.Count > 0)
             {
-                Console.WriteLine($"{Name} dropped all items.");
-                inventory.Clear();
+                Console.WriteLine($"{Name} dropped all items: {string.Join(", ", inventory)}.");
+                inventory.Clear(); // Clears inventory
             }
             else
             {
@@ -63,6 +68,11 @@ namespace DungeonExplorer
             Console.WriteLine($"Player: {Name}");
             Console.WriteLine($"Health: {Health}");
             Console.WriteLine($"Inventory: {InventoryContents()}");
+        }
+
+        public bool HasItems()
+        {
+            return inventory.Count > 0; // Return true if the player has at least one item
         }
     }
 }

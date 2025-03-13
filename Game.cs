@@ -68,16 +68,19 @@ namespace DungeonExplorer
             Console.WriteLine("1: Take a look around");
             Console.WriteLine("2: Check your inventory");
             Console.WriteLine("3: Pick up an item");
-            Console.WriteLine("4: Move to the next room");
+            Console.WriteLine("4: Drop an item");
+            Console.WriteLine("5: Move to the next room");
             if (currentRoom.HasMonster()) // Only display "FIGHT!" if monster exists
             {
-                Console.WriteLine("5: FIGHT!");
+                Console.WriteLine("6: FIGHT!");
             }
-            Console.WriteLine("6: Quit the game");
+            Console.WriteLine("7: Quit the game");
         }
 
         private void HandleChoice(string choice, ref bool playing)
         {
+            Console.Clear(); // Clears previous output
+
             switch (choice)
             {
                 case "1":
@@ -106,7 +109,30 @@ namespace DungeonExplorer
                         Console.WriteLine("There is nothing to pick up.");
                     }
                     break;
+
                 case "4":
+                    if (player.HasItems())
+                    {
+                        Console.WriteLine("Which item do you want to drop?");
+                        Console.WriteLine(player.InventoryContents());
+                        string dropItem = Console.ReadLine().Trim();
+
+                        if (player.InventoryContents().Contains(dropItem))
+                        {
+                            player.DropItem(dropItem);
+                            currentRoom.AddItem(dropItem);
+                        }
+                        else
+                        {
+                            Console.WriteLine("You do not have that item to drop.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("You have no items to drop.");
+                    }
+                    break;
+                case "5":
                     // Move to the next room
                     if (currentRoomIndex < rooms.Count - 1)
                     {
@@ -120,7 +146,7 @@ namespace DungeonExplorer
                         Console.WriteLine("There are no more rooms ahead.");
                     }
                     break;
-                case "5": // New option to "fight"
+                case "6": // New option to "fight"
                     if (currentRoom.HasMonster())
                     {
                         Console.WriteLine($"You engage in battle with {currentRoom.GetMonster()}");
@@ -131,7 +157,7 @@ namespace DungeonExplorer
                         Console.WriteLine("There are no enemies here...");
                     }
                     break;
-                case "6":
+                case "7":
                     // Quit the game
                     playing = false;
                     // List of random quit messages
@@ -149,7 +175,7 @@ namespace DungeonExplorer
                     break;
                 default:
                     // Invalid input handling
-                    Console.WriteLine("Invalid choice, please type: 1, 2, 3, 4, 5 or 6.");
+                    Console.WriteLine("Invalid choice, please type: 1, 2, 3, 4, 5, 6 or 7.");
                     break;
                 
             }

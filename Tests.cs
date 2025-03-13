@@ -38,7 +38,9 @@ namespace DungeonExplorer
             Console.WriteLine("Test 5 successful. Room has no item after pickup.");
 
             // Test #6: Check if player can drop item
-            testPlayer.DropItem();
+            testPlayer.DropAllItems();
+            // debug for print
+            Console.WriteLine("Inventory after dropping: " + testPlayer.InventoryContents());
             Debug.Assert(testPlayer.InventoryContents() == "Empty", "Test 6 has failed. Inventory should be empty after dropping item.");
             Console.WriteLine("Test 6 successful. Player has dropped the item.");
 

@@ -55,5 +55,11 @@ namespace DungeonExplorer
         {
             monster = null; // Removes the monster if defeated
         }
+
+        public void AddItem(string item)
+        {
+            items.Add(item);
+            Console.WriteLine($"{item} has been added to the room.");
+        }
     }
 }
