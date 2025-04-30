@@ -7,14 +7,14 @@ namespace DungeonExplorer
     public class Room
     {
         private string description; // Room description
-        private List<string> items = new List<string>(); // Multiple items
-        private string monster; // A monster in the room 
+        private List<Item> items = new List<Item>(); // stores real items now
+        private Monster monster; // stores real monster now
 
-        public Room(string description, List<string> items = null, string monster = null)
+        public Room(string description, List<Item> items = null, Monster monster = null)
         {
             // Initialise the room with description
             this.description = description;
-            this.items = items ?? new List<string>(); // If no items are given, initialises empty list
+            this.items = items ?? new List<Item>(); // If no items are given, initialises empty list
             this.monster = monster;
         }
 
@@ -28,12 +28,12 @@ namespace DungeonExplorer
             return items.Count > 0; // Check if the room has items
         }
 
-        public List<string> GetItems()
+        public List<Item> GetItems()
         {
-            return new List<string>(items); // Returns a copy to avoid changing original list
+            return new List<Item>(items); // Returns a copy to avoid changing original list
         }
 
-        public void RemoveItem(string item)
+        public void RemoveItem(Item item)
         {
             if (items.Contains(item))
             {
@@ -43,10 +43,10 @@ namespace DungeonExplorer
 
         public bool HasMonster()
         {
-            return !string.IsNullOrEmpty(monster); // Check if the room has a monster
+            return monster != null;
         }
 
-        public string GetMonster()
+        public Monster GetMonster()
         {
             return monster;
         }
@@ -56,10 +56,31 @@ namespace DungeonExplorer
             monster = null; // Removes the monster if defeated
         }
 
-        public void AddItem(string item)
+        public void AddItem(Item item)
         {
             items.Add(item);
-            Console.WriteLine($"{item} has been added to the room.");
+            Console.WriteLine($"{item.Name} has been added to the room.");
+        }
+
+        private bool isLocked;
+
+        public Room(string description, List<Item> items = null, Monster monster = null, bool locked = false)
+        {
+            this.description = description;
+            this.items = items ?? new List<Item>();
+            this.monster = monster;
+            this.isLocked = locked;
+        }
+
+        public bool IsLocked()
+        {
+            return isLocked;
+        }
+
+        public void Unlock()
+        {
+            isLocked = false;
+            Console.WriteLine("You unlocked the door with the Old Key.");
         }
     }
 }
