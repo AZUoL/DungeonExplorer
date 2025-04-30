@@ -1,53 +1,59 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.DesignerServices;
 
 namespace DungeonExplorer
 {
-    public class Player
+    // The player class represents the player controlled by the user
+    // Inherits from creature and implements IDamageable for combat logic
+    public class Player : Creature, IDamageable
     {
-        public string Name { get; private set; } // Player Name
-        public int Health { get; private set; } // Player Health
-        private List<string> inventory = new List<string>(); // Player inventory
+        private Inventory inventory = new Inventory(); // Players personal inventory system
 
-        public Player(string name, int health)
+        // Sets the player with a name and health that is handled by creature constructor
+        public Player(string name, int health) : base(name, health)
         {
-            // Initialise the player with name and health
-            Name = name;
-            Health = health;
-        }
-        public void PickUpItem(string item)
-        {
-            inventory.Add(item);
-            // Console.WriteLine($"{Name} picked up: {item}");
         }
 
-        public void DropItem(string item)
+        // Picks up an item and adds it to inventory
+        public void PickUpItem(Item item)
         {
-            // Drops specific item if its in the inventory
-            if (inventory.Remove(item))
+            inventory.AddItem(item);
+            Console.WriteLine($"{Name} picked up: {item.Name}");
+        }
+
+        // Drops single item by name
+        public void DropItem(string itemName)
+        {
+            Item item = inventory.GetItembyName(itemName);
+            if (item != null)
             {
-                Console.WriteLine($"{Name} dropped {item}.");
+                inventory.RemoveItem(item);
+                Console.WriteLine($"{Name} dropped {item.Name}.");
             }
             else
             {
-                Console.WriteLine($"{item} is not in your inventory");
+                Console.WriteLine("That item is not in your inventory.");
             }
 
-            // Ensures that inventory is completely empty if items are gone
-            if (inventory.Count == 0)
+            if (!inventory.HasItems())
             {
-                Console.WriteLine("Your inventory is now empty");
+                Console.WriteLine("Your inventory is now empty.");
             }
-         
         }
 
+        // Drops all items in the players inventory
         public void DropAllItems()
         {
-            // Drops all items from inventory
-            if (inventory.Count > 0)
+            var allItems = inventory.GetItems();
+            if (allItems.Count > 0)
             {
-                Console.WriteLine($"{Name} dropped all items: {string.Join(", ", inventory)}.");
-                inventory.Clear(); // Clears inventory
+                Console.WriteLine($"{Name} dropped all items: {string.Join(", ", allItems.Select(i => i.Name))}.");
+                foreach (var item in allItems.ToList())
+                {
+                    inventory.RemoveItem(item);
+                }
             }
             else
             {
@@ -55,13 +61,14 @@ namespace DungeonExplorer
             }
         }
 
+
+        // Returns a comma separated list of items in the inventory or notifies its empty
         public string InventoryContents()
         {
-            // If inventory has items, join them into a single string that are separted by commas.
-            // Otherwise return "empty" if no items are there
-            return inventory.Count > 0 ? string.Join(", ", inventory) : "Empty"; 
+            return inventory.Display();
         }
 
+        // Shows the players current stats
         public void DisplayStatus()
         {
             // Shows player stats
@@ -70,9 +77,77 @@ namespace DungeonExplorer
             Console.WriteLine($"Inventory: {InventoryContents()}");
         }
 
+        // Checks if the player is holding any items
         public bool HasItems()
         {
-            return inventory.Count > 0; // Return true if the player has at least one item
+            return inventory.HasItems();
+        }
+
+        // Basic attack with fixed damage
+        public override void Attack(Creature target)
+        {
+            int damage = 10; // basic player attacks
+            Console.WriteLine($"{Name} attacks {target.Name} with a basic attack!");
+            target.TakeDamage(damage);
+        }
+
+        // Optional overloaded attack method with bonus damage (not currently used)
+        public void Attack(Creature target, int bonusDamage)
+        {
+            Console.WriteLine($"{Name} uses a special attack on {target.Name}!");
+            target.TakeDamage(10 + bonusDamage);
+        }
+
+        // Heals the player - caps HP at 100
+        public void Heal(int amount)
+        {
+            Health += amount;
+            if (Health > 100)
+            {
+                Health = 100;
+            }
+            Console.WriteLine($"{Name} heals for {amount}. Health is now {Health}.");
+        }
+
+        // Uses an item by name
+        public void UseItem(string itemName)
+        {
+            Item item = inventory.GetItembyName(itemName);
+            if (item != null)
+            {
+                item.Use(this);
+                inventory.RemoveItem(item);
+            }
+            else
+            {
+                Console.WriteLine("That item is not in your inventory.");
+            }
+        }
+
+        // Displays all healing items in the inventory using LINQ inside Inventory
+        public void ShowHealingItems()
+        {
+            inventory.ShowHealingItems(); // uses LINQ inside inventory.cs
+        }
+
+        // Displays the strongest weapon using LINQ
+        public void ShowStrongestWeapon()
+        {
+            inventory.ShowStrongestWeapon(); // uses LINQ to find the best weapon
+        }
+
+        // Gets a specific item from the inventory by name 
+        public Item GetItemByName(string name)
+        {
+            return inventory.GetItembyName(name);
+        }
+
+        public Weapon GetStrongestWeapon()
+        {
+            return inventory.GetItems()
+                .OfType<Weapon>()
+                .OrderByDescending(w => w.Damage)
+                .FirstOrDefault();
         }
     }
 }

@@ -5,12 +5,12 @@ using System.Linq; // required for multiple items
 
 namespace DungeonExplorer
 {
+    // Main class that handles all game logic and interactions
     internal class Game
     {
+        private Statistics stats = new Statistics(); // Tracks player kills, items looted and rooms visited
         private Player player; // Player character
-        private Room currentRoom; // The current room
-        private List<Room> rooms = new List<Room>(); // List of rooms
-        private int currentRoomIndex = 0; // track players position
+        private GameMap gameMap; // Manages the room and navigation
 
         public Game()
         {
@@ -35,17 +35,36 @@ namespace DungeonExplorer
             player = new Player(playerName, 100);
 
             // Create rooms
-            Room room1 = new Room("A dark, rat infested room", new List<string> { "Sharp Stick", "Old Key" }, "Giant Rat");
-            Room room2 = new Room("An eerie corridor that is filled with cobwebs", new List<string> { "Healing potion", "Rusty Dagger" }, "Eldritch Accountant");
-            Room room3 = new Room("A treaure room with gold, money and different artifacts", new List<string> { "£5 Note" }, "Undead Treasure Guardian");
+            Room room1 = new Room(
+                "A dark, rat infested room",
+                new List<Item> { new Weapon("Sharp Stick", 5), new Weapon("Old Key", 1) },
+                new Monster("Giant Rat", 30, 5)
+            );
+            Room room2 = new Room(
+                "An eerie corridor filled with cobwebs",
+                new List<Item> { new Potion("Healing Potion", 20), new Weapon("Rusty Dagger", 7) },
+                new Monster("Eldritch Accountant", 45, 8)
+            );
+            Room room3 = new Room(
+                "A treasure room filled with gold, money and artifacts.",
+                new List<Item> { new Weapon("£5 Note", 2) },
+                new Monster("Undead Treasure Guardian", 60, 10),
+                locked: true
+            );
+            Room room4 = new Room(
+                "A bloodstained prison cell.",
+                new List<Item> { new Weapon("Rusty Pipe", 10) },
+                new Goblin("Goblin Brute", 40, 12)
+            );
 
-            // Add rooms to a list
-            rooms.Add(room1);
-            rooms.Add(room2); 
-            rooms.Add(room3); 
+            Room room5 = new Room(
+                "A suspiciously empty vault.",
+                new List<Item> { new Potion("Greater Healing Potion", 30), new Weapon("Arcane Spear", 15) },
+                new Monster("Phantom Warden", 70, 15)
+            );
 
-            // Set the starting room
-            currentRoom = rooms[currentRoomIndex];
+            List<Room> roomList = new List<Room> { room1, room2, room3, room4, room5 };
+            gameMap = new GameMap(roomList ); // initialises the full map
         }
 
         public void Start()
@@ -70,16 +89,17 @@ namespace DungeonExplorer
             Console.WriteLine("3: Pick up an item");
             Console.WriteLine("4: Drop an item");
             Console.WriteLine("5: Move to the next room");
-            if (currentRoom.HasMonster()) // Only display "FIGHT!" if monster exists
-            {
-                Console.WriteLine("6: FIGHT!");
-            }
-            Console.WriteLine("7: Quit the game");
+            Console.WriteLine("6: Move back to previous room");
+            Console.WriteLine("7: Use an item");
+            Console.WriteLine("8: Show healing items");
+            Console.WriteLine("9: Show strongest weapon");
+            Console.WriteLine("10: Quit the game");
         }
 
         private void HandleChoice(string choice, ref bool playing)
         {
             Console.Clear(); // Clears previous output
+            Room currentRoom = gameMap.GetCurrentRoom();
 
             switch (choice)
             {
@@ -88,7 +108,68 @@ namespace DungeonExplorer
                     Console.WriteLine("You take a look around and you see: " + currentRoom.GetDescription());
                     if (currentRoom.HasMonster())
                     {
-                        Console.WriteLine($"A {currentRoom.GetMonster()} is lurking here!");
+                        Monster monster = currentRoom.GetMonster();
+
+                        Console.WriteLine($"You engage in battle with {monster.Name}!");
+
+                        while (player.IsAlive() && monster.IsAlive())
+                        {
+                            Console.WriteLine("\nChoose your action:");
+                            Console.WriteLine("1: Attack");
+                            Console.WriteLine("2: Flee");
+                            string input = Console.ReadLine();
+
+                            if (input == "1")
+                            {
+                                // Checks if player has a weapon and if so, use overloaded attack with bonus
+                                Weapon strongest = player.GetStrongestWeapon();
+                                if (strongest != null)
+                                {
+                                    Console.WriteLine($"{player.Name} pulls out their strongest weapon: {strongest.Name}!");
+                                    player.Attack(monster, strongest.Damage); // use attack with bonus damage
+                                    Console.WriteLine($"Bonus damage applied: {strongest.Damage}");
+                                }
+                                else
+                                {
+                                    player.Attack(monster); // use base attack if no weapon
+                                }
+
+                                // if monster is still alive, it fights back
+                                if (monster.IsAlive())
+                                {
+                                    monster.Attack(player);
+                                }
+                            }
+                            else if (input == "2")
+                            {
+                                Console.WriteLine("You flee from battle!");
+                                break;
+                            }
+                            else
+                            {
+                                Console.WriteLine("Invalid input. Choose 1 or 2.");
+                            }
+                        }
+
+                        // Checks if monster has been defeated
+                        if (!monster.IsAlive())
+                        {
+                            Console.WriteLine($"You have defeated the {monster.Name}!");
+                            currentRoom.RemoveMonster();
+                            stats.IncrementMonstersDefeated();
+                        }
+
+                        // Checks if player has been defeated
+                        if (!player.IsAlive())
+                        {
+                            Console.WriteLine($"You have died. Game over.");
+                            Environment.Exit(0);
+                        }
+                    }
+
+                    else
+                    {
+                        Console.WriteLine("There are no enemies here...");
                     }
                     break;
                 case "2":
@@ -99,10 +180,11 @@ namespace DungeonExplorer
                     // Pick up an item if one is available
                     if (currentRoom.HasItems())
                     {
-                        string item = currentRoom.GetItems()[0]; // Pick up the first available item
+                        Item item = currentRoom.GetItems()[0]; 
                         player.PickUpItem(item);
-                        currentRoom.RemoveItem(item); // Removes the item from the room
-                        Console.WriteLine($"You have picked up: {item}");
+                        stats.IncrementItemsPickedUp();
+                        currentRoom.RemoveItem(item); 
+                        Console.WriteLine($"You have picked up: {item.Name}");
                     }
                     else
                     {
@@ -111,16 +193,18 @@ namespace DungeonExplorer
                     break;
 
                 case "4":
+                    // Drop selected item
                     if (player.HasItems())
                     {
                         Console.WriteLine("Which item do you want to drop?");
                         Console.WriteLine(player.InventoryContents());
-                        string dropItem = Console.ReadLine().Trim();
+                        string dropItemName = Console.ReadLine().Trim();
 
-                        if (player.InventoryContents().Contains(dropItem))
+                        Item itemToDrop = player.GetItemByName(dropItemName);
+                        if (itemToDrop != null)
                         {
-                            player.DropItem(dropItem);
-                            currentRoom.AddItem(dropItem);
+                            player.DropItem(dropItemName);
+                            currentRoom.AddItem(itemToDrop);
                         }
                         else
                         {
@@ -133,31 +217,67 @@ namespace DungeonExplorer
                     }
                     break;
                 case "5":
-                    // Move to the next room
-                    if (currentRoomIndex < rooms.Count - 1)
+                    // Tries to move forward unless next room is locked
+                    Room nextRoom = gameMap.PeekNextRoom();
+
+                    if (nextRoom.IsLocked())
                     {
-                        currentRoomIndex++;
-                        currentRoom = rooms[currentRoomIndex];
+                        Console.WriteLine("The next room is locked. Use a key to unlock it first.");
+                    }
+                    else
+                    {
+                        gameMap.MoveToNextRoom();
                         Console.WriteLine("\nYou move onto the next room...");
-                        Console.WriteLine($"You are now in: {currentRoom.GetDescription()}");
+                        Console.WriteLine($"You are now in: {gameMap.GetCurrentRoom().GetDescription()}");
+                        stats.IncrementRoomsVisited();
+                    }
+                    break;
+                case "6":
+                    // Goes back to previous room
+                    gameMap.MoveToPreviousRoom();
+                    Console.WriteLine("\nYou move back to the previous room... must've forgotten something");
+                    Console.WriteLine($"You are now in: {gameMap.GetCurrentRoom().GetDescription()}");
+                    break;
+                case "7": 
+                    // Use an item
+                    if (player.HasItems())
+                    {
+                        Console.WriteLine("Which item do you want to use?");
+                        Console.WriteLine(player.InventoryContents());
+                        string useItem = Console.ReadLine().Trim();
+
+                        Item item = player.GetItemByName(useItem);
+                        if (item != null)
+                        {
+                            // if its a key and next room is locked, unlock it
+                            Room upcomingRoom = gameMap.PeekNextRoom();
+                            if (item.Name.ToLower().Contains("key") && upcomingRoom.IsLocked())
+                            {
+                                upcomingRoom.Unlock();
+                                player.DropItem(useItem); // consumes the key
+                            }
+                            else
+                            {
+                                player.UseItem(useItem);
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("You don't have that item.");
+                        }
                     }
                     else
                     {
-                        Console.WriteLine("There are no more rooms ahead.");
+                        Console.WriteLine("You have no items to use.");
                     }
                     break;
-                case "6": // New option to "fight"
-                    if (currentRoom.HasMonster())
-                    {
-                        Console.WriteLine($"You engage in battle with {currentRoom.GetMonster()}");
-                        Console.WriteLine("You attempt to fight, but then recall that confrontation gives you anxiety. You promptly flee!");
-                    }
-                    else
-                    {
-                        Console.WriteLine("There are no enemies here...");
-                    }
+                case "8":
+                    player.ShowHealingItems();
                     break;
-                case "7":
+                case "9":
+                    player.ShowStrongestWeapon();
+                    break;
+                case "10":
                     // Quit the game
                     playing = false;
                     // List of random quit messages
@@ -172,10 +292,11 @@ namespace DungeonExplorer
                     // Selects a random message from the list
                     Random rand = new Random();
                     Console.WriteLine(exitReasons[rand.Next(exitReasons.Length)]);
+                    stats.Display(); // Shows final player statistics
                     break;
                 default:
                     // Invalid input handling
-                    Console.WriteLine("Invalid choice, please type: 1, 2, 3, 4, 5, 6 or 7.");
+                    Console.WriteLine("Invalid choice, please type: 1, 2, 3, 4, 5, 6, 7, 8, 9 or 10.");
                     break;
                 
             }
